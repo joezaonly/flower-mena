@@ -64,7 +64,7 @@ const defaultProducts = [
     }
 ];
 
-const PROMPTPAY_NUMBER = '0812345678';
+const PROMPTPAY_NUMBER = '0908478845';
 
 createApp({
     setup() {
