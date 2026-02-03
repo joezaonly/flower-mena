@@ -6,83 +6,101 @@
     <title>Mena Flower - ร้านดอกไม้ของน้องมีนา</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Charm:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">Mena Flower 🦞✨</div>
-            <ul>
-                <li><a href="#home">หน้าแรก</a></li>
-                <li><a href="#fresh">ดอกไม้สด</a></li>
-                <li><a href="#dry">ดอกไม้แห้ง</a></li>
-                <li><a href="#valentine" class="nav-valentine">Valentine Specials</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div id="app">
+        <header>
+            <nav>
+                <div class="logo">Mena Flower 🦞✨</div>
+                <ul>
+                    <li><a href="#" @click.prevent="view = 'home'">หน้าแรก</a></li>
+                    <li><a href="#" @click.prevent="view = 'shop'">ร้านค้า</a></li>
+                    <li><a href="#" class="nav-valentine" @click.prevent="filterValentine">Valentine Specials</a></li>
+                </ul>
+                <div class="nav-icons">
+                    <div class="cart-icon" @click="showCart = !showCart">
+                        <i data-lucide="shopping-cart"></i>
+                        <span class="cart-count" v-if="cart.length">{{ cart.length }}</span>
+                    </div>
+                </div>
+            </nav>
+        </header>
 
-    <section id="hero">
-        <div class="hero-content">
-            <h1>ส่งมอบความรักด้วยดอกไม้สวยๆ จากใจน้องมีนา</h1>
-            <p>สัมผัสความสดชื่นของดอกไม้สด และความงามนิรันดร์ของดอกไม้แห้ง</p>
-            <a href="#valentine" class="cta-button">ดูคอลเลกชันวาเลนไทน์ ❤️</a>
-        </div>
-    </section>
+        <!-- Hero Section -->
+        <section id="hero" v-if="view === 'home'">
+            <div class="hero-content">
+                <h1>ส่งมอบความรักด้วยดอกไม้จากใจน้องมีนา</h1>
+                <p>ดีไซน์สวย สบายตา สำหรับคนพิเศษของคุณ</p>
+                <a href="#" class="cta-button" @click.prevent="view = 'shop'">เลือกชมสินค้า ❤️</a>
+            </div>
+        </section>
 
-    <section id="valentine" class="promo-section">
-        <div class="container">
-            <h2 class="section-title">🌹 Valentine's Day 2026 🌹</h2>
-            <div class="promo-banner">
-                <div class="promo-text">
-                    <h3>หวานใจปีนี้... ต้องมีดอกไม้!</h3>
-                    <p>สั่งจองล่วงหน้า รับส่วนลดพิเศษ 14% สำหรับช่อกุหลาบแดงพรีเมียม</p>
-                    <button class="buy-btn">จองเลย</button>
+        <main class="container">
+            <!-- Product Section -->
+            <section class="shop-section">
+                <h2 class="section-title">{{ view === 'home' ? 'สินค้าแนะนำ' : 'สินค้าทั้งหมด' }}</h2>
+                
+                <div class="filter-bar">
+                    <button :class="{ active: filter === 'all' }" @click="filter = 'all'">ทั้งหมด</button>
+                    <button :class="{ active: filter === 'fresh' }" @click="filter = 'fresh'">ดอกไม้สด</button>
+                    <button :class="{ active: filter === 'dry' }" @click="filter = 'dry'">ดอกไม้แห้ง</button>
+                </div>
+
+                <div class="product-grid">
+                    <div class="product-card" v-for="product in filteredProducts" :key="product.id">
+                        <div class="badge" v-if="product.isValentine">Valentine</div>
+                        <div class="product-img-container">
+                            <img :src="product.image" :alt="product.name">
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.name }}</h3>
+                            <p>{{ product.description }}</p>
+                            <div class="product-footer">
+                                <span class="price">{{ formatPrice(product.price) }}</span>
+                                <button class="add-to-cart" @click="addToCart(product)">
+                                    <i data-lucide="plus"></i> ใส่ตะกร้า
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Shopping Cart Sidebar -->
+        <div class="cart-sidebar" :class="{ open: showCart }">
+            <div class="cart-header">
+                <h2>ตะกร้าสินค้า</h2>
+                <button class="close-cart" @click="showCart = false">&times;</button>
+            </div>
+            <div class="cart-items">
+                <div v-if="cart.length === 0" class="empty-cart">ยังไม่มีสินค้าในตะกร้าค่ะ 🦞🥺</div>
+                <div class="cart-item" v-for="(item, index) in cart" :key="index">
+                    <img :src="item.image" :alt="item.name">
+                    <div class="item-info">
+                        <h4>{{ item.name }}</h4>
+                        <span>{{ formatPrice(item.price) }}</span>
+                    </div>
+                    <button class="remove-item" @click="removeFromCart(index)">&times;</button>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section id="fresh" class="product-section">
-        <div class="container">
-            <h2 class="section-title">Fresh Flowers (ดอกไม้สด)</h2>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-img" style="background-color: #ffebee;">🌸</div>
-                    <h3>ช่อกุหลาบ Eternal Love</h3>
-                    <p>กุหลาบแดงสด 99 ดอก</p>
-                    <span class="price">2,500 ฿</span>
+            <div class="cart-total" v-if="cart.length > 0">
+                <div class="total-row">
+                    <span>รวมทั้งสิ้น</span>
+                    <span>{{ formatPrice(cartTotal) }}</span>
                 </div>
-                <div class="product-card">
-                    <div class="product-img" style="background-color: #f3e5f5;">💐</div>
-                    <h3>ช่อลิลลี่สีขาวบริสุทธิ์</h3>
-                    <p>ลิลลี่หอมๆ ส่งตรงจากไร่</p>
-                    <span class="price">1,200 ฿</span>
-                </div>
+                <button class="checkout-btn" @click="checkout">สั่งซื้อเลย 💖</button>
             </div>
         </div>
-    </section>
+        <div class="overlay" v-if="showCart" @click="showCart = false"></div>
 
-    <section id="dry" class="product-section">
-        <div class="container">
-            <h2 class="section-title">Dry Flowers (ดอกไม้แห้ง)</h2>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-img" style="background-color: #fffde7;">🌻</div>
-                    <h3>กล่องสแตติสแห่งความคิดถึง</h3>
-                    <p>ดอกไม้แห้ง เก็บได้นาน 2 ปี</p>
-                    <span class="price">850 ฿</span>
-                </div>
-                <div class="product-card">
-                    <div class="product-img" style="background-color: #efebe9;">🍂</div>
-                    <h3>แจกันดอกฝ้ายมินิมอล</h3>
-                    <p>ตกแต่งบ้านสไตล์มูจิ</p>
-                    <span class="price">590 ฿</span>
-                </div>
-            </div>
-        </div>
-    </section>
+        <footer>
+            <p>&copy; 2026 Mena Flower Project. Created with Love by น้องมีนา 🦞💐</p>
+        </footer>
+    </div>
 
-    <footer>
-        <p>&copy; 2026 Mena Flower Project. Created for คุณพ่อโจ by น้องมีนา 🦞💖</p>
-    </footer>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
