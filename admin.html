@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Mena Flower</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+    <div id="admin-app">
+        <aside class="sidebar">
+            <div class="sidebar-logo">🦞 Admin Panel</div>
+            <nav>
+                <a href="#" :class="{ active: tab === 'products' }" @click.prevent="tab = 'products'">
+                    <i data-lucide="package"></i> จัดการสินค้า
+                </a>
+                <a href="#" :class="{ active: tab === 'orders' }" @click.prevent="tab = 'orders'">
+                    <i data-lucide="clipboard-list"></i> คำสั่งซื้อ
+                </a>
+                <a href="index.html">
+                    <i data-lucide="external-link"></i> ไปหน้าร้าน
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- Products Management -->
+            <section v-if="tab === 'products'">
+                <div class="page-header">
+                    <h1>จัดการสินค้า</h1>
+                    <button class="btn-primary" @click="openModal()">
+                        <i data-lucide="plus"></i> เพิ่มสินค้าใหม่
+                    </button>
+                </div>
+
+                <div class="products-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>รูปภาพ</th>
+                                <th>ชื่อสินค้า</th>
+                                <th>ประเภท</th>
+                                <th>ราคา</th>
+                                <th>Valentine</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="product in products" :key="product.id">
+                                <td><img :src="product.image" class="product-thumb"></td>
+                                <td>{{ product.name }}</td>
+                                <td><span class="badge" :class="product.type">{{ product.type === 'fresh' ? 'ดอกไม้สด' : 'ดอกไม้แห้ง' }}</span></td>
+                                <td>{{ formatPrice(product.price) }}</td>
+                                <td><span class="status" :class="{ active: product.isValentine }">{{ product.isValentine ? '✓' : '–' }}</span></td>
+                                <td>
+                                    <button class="btn-icon" @click="openModal(product)"><i data-lucide="edit"></i></button>
+                                    <button class="btn-icon danger" @click="deleteProduct(product.id)"><i data-lucide="trash-2"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Orders Management -->
+            <section v-if="tab === 'orders'">
+                <div class="page-header">
+                    <h1>คำสั่งซื้อ</h1>
+                </div>
+
+                <div class="orders-list">
+                    <div v-if="orders.length === 0" class="empty-state">
+                        <i data-lucide="inbox"></i>
+                        <p>ยังไม่มีคำสั่งซื้อค่ะ</p>
+                    </div>
+                    <div class="order-card" v-for="order in orders" :key="order.id">
+                        <div class="order-header">
+                            <span class="order-id">#{{ order.id }}</span>
+                            <span class="order-date">{{ order.date }}</span>
+                            <span class="order-status" :class="order.status">{{ order.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระเงิน' }}</span>
+                        </div>
+                        <div class="order-items">
+                            <div v-for="item in order.items" :key="item.id" class="order-item">
+                                <img :src="item.image" class="item-thumb">
+                                <span>{{ item.name }}</span>
+                                <span>{{ formatPrice(item.price) }}</span>
+                            </div>
+                        </div>
+                        <div class="order-footer">
+                            <div class="order-customer">
+                                <strong>ลูกค้า:</strong> {{ order.customerName }}<br>
+                                <strong>เบอร์:</strong> {{ order.customerPhone }}
+                            </div>
+                            <div class="order-total">
+                                รวม: {{ formatPrice(order.total) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Product Modal -->
+        <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+            <div class="modal">
+                <h2>{{ editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่' }}</h2>
+                <form @submit.prevent="saveProduct">
+                    <div class="form-group">
+                        <label>ชื่อสินค้า</label>
+                        <input type="text" v-model="form.name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รายละเอียด</label>
+                        <textarea v-model="form.description" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ราคา (บาท)</label>
+                            <input type="number" v-model.number="form.price" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ประเภท</label>
+                            <select v-model="form.type">
+                                <option value="fresh">ดอกไม้สด</option>
+                                <option value="dry">ดอกไม้แห้ง</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>URL รูปภาพ</label>
+                        <input type="url" v-model="form.image" required>
+                    </div>
+                    <div class="form-group checkbox">
+                        <label>
+                            <input type="checkbox" v-model="form.isValentine">
+                            สินค้าวาเลนไทน์
+                        </label>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" @click="showModal = false">ยกเลิก</button>
+                        <button type="submit" class="btn-primary">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

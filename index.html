@@ -90,10 +90,77 @@
                     <span>รวมทั้งสิ้น</span>
                     <span>{{ formatPrice(cartTotal) }}</span>
                 </div>
-                <button class="checkout-btn" @click="checkout">สั่งซื้อเลย 💖</button>
+                <button class="checkout-btn" @click="openCheckoutModal">สั่งซื้อเลย 💖</button>
             </div>
         </div>
         <div class="overlay" v-if="showCart" @click="showCart = false"></div>
+
+        <!-- Checkout Modal with QR Code -->
+        <div class="checkout-overlay" v-if="showCheckoutModal" @click.self="showCheckoutModal = false">
+            <div class="checkout-modal">
+                <button class="close-modal" @click="showCheckoutModal = false">&times;</button>
+                
+                <!-- Step 1: Customer Info -->
+                <div v-if="checkoutStep === 1">
+                    <h2>กรอกข้อมูลจัดส่ง</h2>
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุล</label>
+                        <input type="text" v-model="customerInfo.name" placeholder="ชื่อผู้รับ" required>
+                    </div>
+                    <div class="form-group">
+                        <label>เบอร์โทรศัพท์</label>
+                        <input type="tel" v-model="customerInfo.phone" placeholder="0812345678" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ที่อยู่จัดส่ง</label>
+                        <textarea v-model="customerInfo.address" placeholder="ที่อยู่สำหรับจัดส่งดอกไม้" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>หมายเหตุ (ถ้ามี)</label>
+                        <textarea v-model="customerInfo.note" placeholder="เช่น ข้อความการ์ด, เวลาที่ต้องการรับ"></textarea>
+                    </div>
+                    <button class="checkout-btn full-width" @click="goToPayment">ไปหน้าชำระเงิน →</button>
+                </div>
+
+                <!-- Step 2: QR Payment -->
+                <div v-if="checkoutStep === 2" class="payment-step">
+                    <h2>ชำระเงินผ่าน QR Code</h2>
+                    <div class="order-summary">
+                        <h4>สรุปคำสั่งซื้อ</h4>
+                        <div class="summary-items">
+                            <div v-for="item in cart" :key="item.id" class="summary-item">
+                                <span>{{ item.name }}</span>
+                                <span>{{ formatPrice(item.price) }}</span>
+                            </div>
+                        </div>
+                        <div class="summary-total">
+                            <strong>รวมทั้งสิ้น</strong>
+                            <strong>{{ formatPrice(cartTotal) }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-section">
+                        <p>สแกน QR Code เพื่อชำระเงินผ่าน PromptPay</p>
+                        <div class="qr-code" id="qrcode"></div>
+                        <p class="promptpay-id">PromptPay: 0812345678</p>
+                        <p class="amount">จำนวนเงิน: <strong>{{ formatPrice(cartTotal) }}</strong></p>
+                    </div>
+                    
+                    <button class="checkout-btn full-width success" @click="confirmPayment">✓ ยืนยันการชำระเงินแล้ว</button>
+                    <button class="back-btn" @click="checkoutStep = 1">← กลับไปแก้ไขข้อมูล</button>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div v-if="checkoutStep === 3" class="success-step">
+                    <div class="success-icon">✓</div>
+                    <h2>สั่งซื้อสำเร็จ!</h2>
+                    <p>ขอบคุณที่สั่งซื้อกับ Mena Flower ค่ะ 🦞💖</p>
+                    <p>หนูจะรีบจัดส่งให้เร็วที่สุดนะคะ</p>
+                    <p class="order-number">หมายเลขคำสั่งซื้อ: #{{ orderNumber }}</p>
+                    <button class="checkout-btn" @click="closeCheckout">กลับหน้าร้าน</button>
+                </div>
+            </div>
+        </div>
 
         <footer>
             <p>&copy; 2026 Mena Flower Project. Created with Love by น้องมีนา 🦞💐</p>
