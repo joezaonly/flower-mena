@@ -2,7 +2,6 @@ const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
 
 // PromptPay QR Generator
 const generatePromptPayQR = (phoneNumber, amount) => {
-    // ใช้ API สร้าง PromptPay QR
     const cleanPhone = phoneNumber.replace(/\D/g, '');
     return `https://promptpay.io/${cleanPhone}/${amount}.png`;
 };
@@ -65,7 +64,6 @@ const defaultProducts = [
     }
 ];
 
-// PromptPay Number (ใส่เบอร์จริงตรงนี้)
 const PROMPTPAY_NUMBER = '0812345678';
 
 createApp({
@@ -75,7 +73,6 @@ createApp({
         const showCart = ref(false);
         const cart = ref([]);
         
-        // Checkout states
         const showCheckoutModal = ref(false);
         const checkoutStep = ref(1);
         const orderNumber = ref('');
@@ -86,7 +83,6 @@ createApp({
             note: ''
         });
 
-        // Load products from localStorage
         const products = ref([]);
         
         const loadProducts = () => {
@@ -133,7 +129,6 @@ createApp({
             filter.value = 'all';
         };
 
-        // Checkout Functions
         const openCheckoutModal = () => {
             if (cart.value.length === 0) return;
             showCart.value = false;
@@ -148,7 +143,6 @@ createApp({
             }
             checkoutStep.value = 2;
             nextTick(() => {
-                // Generate QR Code
                 const qrContainer = document.getElementById('qrcode');
                 if (qrContainer) {
                     const qrUrl = generatePromptPayQR(PROMPTPAY_NUMBER, cartTotal.value);
@@ -158,10 +152,8 @@ createApp({
         };
 
         const confirmPayment = async () => {
-            // Generate order number
             orderNumber.value = Date.now().toString().slice(-8);
             
-            // Save order to localStorage
             const order = {
                 id: orderNumber.value,
                 date: new Date().toLocaleString('th-TH'),
@@ -178,16 +170,21 @@ createApp({
             orders.unshift(order);
             localStorage.setItem('menaFlowerOrders', JSON.stringify(orders));
 
-            // Send notification (will be handled by webhook)
+            // Send to server for Telegram notification
             try {
                 const notifyData = {
                     orderId: orderNumber.value,
                     customer: customerInfo.value,
-                    items: cart.value.map(i => i.name).join(', '),
+                    items: cart.value.map(i => ({ name: i.name, price: i.price })),
+                    itemNames: cart.value.map(i => i.name).join(', '),
                     total: cartTotal.value
                 };
-                console.log('Order placed:', notifyData);
-                // Webhook call would go here
+                
+                await fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(notifyData)
+                });
             } catch (e) {
                 console.error('Notification error:', e);
             }
