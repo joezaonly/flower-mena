@@ -94,13 +94,19 @@ createApp({
 
         const products = ref([]);
         
-        const loadProducts = () => {
-            const saved = localStorage.getItem('menaFlowerProducts');
-            if (saved) {
-                products.value = JSON.parse(saved);
-            } else {
+        const loadProducts = async () => {
+            try {
+                // Fetch products from API (realtime)
+                const response = await fetch('/api/products');
+                if (response.ok) {
+                    products.value = await response.json();
+                } else {
+                    // Fallback to default products
+                    products.value = [...defaultProducts];
+                }
+            } catch (error) {
+                console.error('Failed to load products:', error);
                 products.value = [...defaultProducts];
-                localStorage.setItem('menaFlowerProducts', JSON.stringify(defaultProducts));
             }
         };
 

@@ -189,6 +189,19 @@ const server = http.createServer((req, res) => {
 
     if (req.method === 'POST' && req.url === '/api/order') {
         handleOrder(req, res);
+    } else if (req.method === 'GET' && req.url === '/api/products') {
+        // API: Get products (realtime)
+        const productsFile = path.join(__dirname, 'products.json');
+        fs.readFile(productsFile, 'utf8', (err, data) => {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Failed to load products' }));
+            } else {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(data);
+            }
+        });
     } else {
         serveStatic(req, res);
     }
