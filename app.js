@@ -61,6 +61,15 @@ const defaultProducts = [
         type: 'dry',
         isValentine: true,
         image: 'https://images.unsplash.com/photo-1503149779833-1de50ebe5f8a?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+        id: 7,
+        name: 'ช่อดอกกุหลาบแดงดอกเดี่ยว',
+        description: 'กุหลาบแดงดอกเดี่ยวพร้อมดอกยิปโซและสแตติส ห่อด้วยกระดาษสีแดงเบอร์กันดี้สุดหรู',
+        price: 359,
+        type: 'fresh',
+        isValentine: true,
+        image: '/images/rose-single.jpg'
     }
 ];
 
